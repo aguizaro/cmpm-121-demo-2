@@ -1,18 +1,24 @@
 import "./style.css";
 
+// Draw line segments if pen is down
 function drawPath(e: MouseEvent) {
-  if (!penDown) return;
+  console.log("new point");
   // pen style
   ctx.lineWidth = 1.5;
   ctx.lineCap = "round";
   ctx.strokeStyle = "black";
-  // line to new position
-  ctx.lineTo(e.clientX - canvas.offsetLeft, e.clientY - canvas.offsetTop);
-  ctx.stroke();
-  // new path for next segment
-  ctx.beginPath();
-  ctx.moveTo(e.clientX - canvas.offsetLeft, e.clientY - canvas.offsetTop);
+  //add points to current stroke
+  console.log(e.clientX - canvas.offsetLeft, e.clientY - canvas.offsetTop);
+  currentStroke.push([
+    e.clientX - canvas.offsetLeft,
+    e.clientY - canvas.offsetTop,
+  ]);
+
+  // dispatch event for observer
+  const drawingChangedEvent = new Event("drawing-changed");
+  canvas.dispatchEvent(drawingChangedEvent);
 }
+
 // set up main div
 const app: HTMLDivElement = document.querySelector("#app")!;
 // title
@@ -39,8 +45,17 @@ clearButton.innerText = "Clear";
 clearButton.addEventListener("click", () => {
   ctx.fillRect(0, 0, canvas.width, canvas.height);
   ctx.fillStyle = "beige";
+  penStrokes.length = 0; //clear stroke history
+  currentStroke.length = 0;
+  penStrokes.push(currentStroke); //add reference to current stroke - current is updated with points when user draws (*important*)
 });
+
+//set up pen tools
 let penDown = false;
+const penStrokes: number[][][] = [];
+const currentStroke: number[][] = [];
+penStrokes.push(currentStroke); //add reference to current stroke to see live updates when re-drawing
+
 //Set up listners for mouse to draw
 document.addEventListener("mousedown", () => {
   console.log("down");
@@ -50,15 +65,29 @@ document.addEventListener("mousedown", () => {
 document.addEventListener("mouseup", () => {
   console.log("up");
   penDown = false;
+  penStrokes.push(currentStroke.slice()); // add current stroke to strokes array
+  currentStroke.length = 0; // clear current stroke points
 });
 canvas.addEventListener("mousemove", (e) => {
-  console.log("draw");
-  drawPath(e);
+  if (penDown) drawPath(e);
 });
 // avoids weird line segments when pen is down, exits canvas, and then enters canvas in new location
-canvas.addEventListener("mouseenter", () => {
-  console.log("enter canvas");
-  ctx.beginPath();
+canvas.addEventListener("mouseleave", () => {
+  console.log("exit canvas");
+  penStrokes.push(currentStroke.slice()); // add current stroke to strokes array
+  currentStroke.length = 0;
+});
+
+// observer for drawing-changed event - clears and redraws canvas
+canvas.addEventListener("drawing-changed", () => {
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  penStrokes.forEach((stroke) => {
+    ctx.beginPath();
+    stroke.forEach((point) => {
+      ctx.lineTo(point[0], point[1]);
+      ctx.stroke();
+    });
+  });
 });
 
 //Todo: make it so players can click to make a dot (mousedown -> mouseup = dot)
