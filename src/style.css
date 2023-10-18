@@ -108,6 +108,12 @@ button:focus-visible {
   margin-left: 30px;
 }
 
+#marker-tools button {
+  margin: 5px;
+  background-color: #000000;
+  filter: drop-shadow(5px 5px 5px rgba(129, 127, 127, 0.705));
+}
+
 @media (prefers-color-scheme: light) {
   :root {
     color: #213547;
