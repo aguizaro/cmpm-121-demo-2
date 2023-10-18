@@ -27,6 +27,8 @@ a:hover {
 body {
   margin: 0;
   display: flex;
+  flex-direction: row;
+  justify-content: center;
   place-items: center;
   min-width: 320px;
   min-height: 100vh;
@@ -41,8 +43,10 @@ h1 {
 }
 
 #app {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
   max-width: 1280px;
-  margin: 0 auto;
   padding: 2rem;
   text-align: center;
 }
@@ -79,11 +83,29 @@ button:focus-visible {
   margin-bottom: 20px;
 }
 
-.button-container {
+#left-container {
+  display: flex;
+  flex-direction: column;
+
+}
+
+#button-container {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+}
+
+#button-container button {
+  margin: 5px;
   background-color: #000000;
   filter: drop-shadow(5px 5px 5px rgba(129, 127, 127, 0.705));
-  margin: 3px;
+}
 
+#marker-tools {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  margin-left: 30px;
 }
 
 @media (prefers-color-scheme: light) {
