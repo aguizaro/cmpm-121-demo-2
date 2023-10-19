@@ -1,75 +1,5 @@
 import "./style.css";
 
-//----------------------------class def + helper functions-------------------------------------------------------
-class LineCommand {
-  points: { x: number; y: number }[];
-  length: number;
-  weight: number;
-  color: string;
-
-  constructor(x: number, y: number, weight: number, color: string) {
-    this.points = [{ x, y }];
-    this.length = 1;
-    this.weight = weight;
-    this.color = color;
-  }
-  display(ctx: CanvasRenderingContext2D) {
-    ctx.lineWidth = this.weight;
-    ctx.lineCap = "round";
-    ctx.strokeStyle = this.color;
-    const { x, y } = this.points[0];
-    ctx.beginPath();
-    ctx.moveTo(x, y);
-    for (const { x, y } of this.points) {
-      ctx.lineTo(x, y);
-    }
-    ctx.stroke();
-  }
-  extend(x: number, y: number) {
-    this.points.push({ x, y });
-    this.length++;
-  }
-}
-class CursorComand {
-  x: number;
-  y: number;
-  size: number;
-  color: string;
-  constructor(x: number, y: number, size: number, color: string) {
-    this.x = x;
-    this.y = y;
-    this.size = size * 4;
-    this.color = color;
-  }
-  display(ctx: CanvasRenderingContext2D) {
-    const originalFillStyle = ctx.fillStyle;
-    ctx.fillStyle = this.color;
-    ctx.font = `${Math.max(7, this.size)}px monospace`;
-    if (this.size <= 4) {
-      ctx.fillText("+", this.x - 2, this.y + 3);
-    } else {
-      ctx.fillText("+", this.x - 8, this.y + 3);
-    }
-    ctx.fillStyle = originalFillStyle;
-  }
-}
-
-// notify observer of change by dispatching a new event
-function notifyChange(name: string) {
-  canvas.dispatchEvent(new Event(name));
-}
-
-//redrar
-function redraw() {
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-  commands.forEach((line) => {
-    if (line.length) {
-      line.display(ctx);
-    }
-  });
-  if (cursorComand) cursorComand.display(ctx);
-}
-
 //--------------------------------create HTML elements + canvas + global vars ------------------------------------------------
 // set up main div
 const app: HTMLDivElement = document.querySelector("#app")!;
@@ -104,13 +34,139 @@ subhead.innerText = "Marker Tools";
 markerTools.appendChild(subhead);
 
 //set up pen tools
+const firstIndex = 0;
 let penDown = false;
-let commands: LineCommand[] = [];
-let redoStack: LineCommand[] = [];
+let commands: (StickerCommand | LineCommand)[] = [];
+let redoStack: (StickerCommand | LineCommand)[] = [];
 let lineWidth = 1;
-let penColor = "black";
 const colors = ["black", "red", "blue", "green", "orange", "white", "yellow"];
+let penColor: string | null = colors[firstIndex];
+const stickers = [
+  "👾",
+  "👻",
+  "💩",
+  "🕸",
+  "🐲",
+  "🌞",
+  "🌳",
+  "🍺",
+  "⚽️",
+  "❤️‍🔥",
+  "🚽",
+];
+let currentSticker: string | null = null;
 let cursorComand: CursorComand | null = null;
+let stickerCommand: StickerCommand | null = null;
+
+//----------------------------class def + helper functions-------------------------------------------------------
+class LineCommand {
+  points: { x: number; y: number }[];
+  length: number;
+  weight: number;
+  color: string;
+
+  constructor(x: number, y: number, weight: number, color: string) {
+    this.points = [{ x, y }];
+    this.length = 1;
+    this.weight = weight;
+    this.color = color;
+  }
+  display(ctx: CanvasRenderingContext2D) {
+    ctx.lineWidth = this.weight;
+    ctx.lineCap = "round";
+    ctx.strokeStyle = this.color;
+    const { x, y } = this.points[0];
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+    for (const { x, y } of this.points) {
+      ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+  }
+  extend(x: number, y: number) {
+    this.points.push({ x, y });
+    this.length++;
+  }
+}
+class CursorComand {
+  x: number;
+  y: number;
+  size: number;
+  color: string | null;
+  sticker: string | null;
+  constructor(
+    x: number,
+    y: number,
+    size: number,
+    color: string | null,
+    sticker: string | null
+  ) {
+    this.x = x;
+    this.y = y;
+    this.size = size * 4;
+    this.color = color;
+    this.sticker = sticker;
+  }
+  display(ctx: CanvasRenderingContext2D) {
+    const originalFillStyle = ctx.fillStyle;
+    ctx.font = `${Math.max(7, this.size)}px monospace`;
+    if (this.sticker) {
+      ctx.fillText(this.sticker, this.x, this.y);
+    } else if (this.color) {
+      ctx.fillStyle = this.color;
+      if (this.size <= 4) {
+        ctx.fillText("+", this.x - 2, this.y + 3);
+      } else {
+        ctx.fillText("+", this.x - 8, this.y + 3);
+      }
+    }
+    ctx.fillStyle = originalFillStyle;
+  }
+}
+class StickerCommand {
+  sticker: string;
+  x: number;
+  y: number;
+  size: number;
+  length: number;
+  constructor(sticker: string, x: number, y: number, size: number) {
+    this.sticker = sticker;
+    this.x = x;
+    this.y = y;
+    this.size = size * 20;
+    this.length = 1;
+  }
+  display(ctx: CanvasRenderingContext2D) {
+    ctx.font = `${Math.max(7, this.size)}px monospace`;
+    ctx.fillText(this.sticker, this.x, this.y);
+  }
+  extend(x: number, y: number) {
+    this.x = x;
+    this.y = y;
+  }
+}
+
+// notify observer of change by dispatching a new event
+function notifyChange(name: string) {
+  canvas.dispatchEvent(new Event(name));
+}
+//redraw canvas and cursor
+function redraw() {
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  commands.forEach((command) => {
+    if (command.length) {
+      command.display(ctx);
+    }
+  });
+  // display sticker cursor if selected
+  if (currentSticker && stickerCommand) {
+    stickerCommand.display(ctx);
+  }
+  // display pen cursor if selected
+  if (penColor && cursorComand) {
+    cursorComand.display(ctx);
+  }
+}
 
 //---------------------------------create buttons---------------------------------------------------------
 //clear canvas button
@@ -122,7 +178,6 @@ clearButton.addEventListener("click", () => {
   redoStack = [];
   notifyChange("drawing-changed");
 });
-buttons.appendChild(clearButton);
 // undo button
 const undoButton: HTMLButtonElement = document.createElement("button");
 undoButton.innerText = "Undo";
@@ -131,7 +186,6 @@ undoButton.addEventListener("click", () => {
   redoStack.push(commands.pop()!);
   notifyChange("drawing-changed");
 });
-buttons.appendChild(undoButton);
 // redo button
 const redoButton: HTMLButtonElement = document.createElement("button");
 redoButton.innerText = "Redo";
@@ -140,7 +194,7 @@ redoButton.addEventListener("click", () => {
   commands.push(redoStack.pop()!);
   notifyChange("drawing-changed");
 });
-buttons.appendChild(redoButton);
+buttons.append(clearButton, undoButton, redoButton);
 // line width button
 const lineWidthButton: HTMLButtonElement = document.createElement("button");
 lineWidthButton.innerText = `${lineWidth}px`;
@@ -155,40 +209,100 @@ lineWidthButton.addEventListener("click", () => {
 const colorButton: HTMLButtonElement = document.createElement("button");
 colorButton.innerText = `${penColor}`;
 colorButton.addEventListener("click", () => {
-  for (let i = 0; i < colors.length; i++) {
-    if (penColor === colors[i]) {
-      penColor = i < colors.length - 1 ? colors[i + 1] : colors[0];
-      break;
+  if (penColor) {
+    for (let i = 0; i < colors.length; i++) {
+      if (penColor === colors[i]) {
+        penColor = i < colors.length - 1 ? colors[i + 1] : colors[firstIndex];
+        break;
+      }
     }
-  }
-  colorButton.innerText = `${penColor}`;
-  if (penColor === "white" || penColor === "yellow") {
-    colorButton.style.color = "black";
+    colorButton.innerText = `${penColor}`;
+    if (penColor === "white" || penColor === "yellow") {
+      colorButton.style.color = "black";
+    } else {
+      colorButton.style.color = "white";
+    }
+    colorButton.style.backgroundColor = penColor;
   } else {
-    colorButton.style.color = "white";
+    //disable stickers pen
+    currentSticker = null;
+    stickerButton.innerText = "stickers";
+    // enable marker pen / pen colors button
+    penColor = colors[firstIndex];
+    colorButton.innerText = `${penColor}`;
   }
-  colorButton.style.backgroundColor = penColor;
+});
+//button to change sticker
+const stickerButton: HTMLButtonElement = document.createElement("button");
+stickerButton.innerText = currentSticker ? currentSticker : "stickers";
+stickerButton.addEventListener("click", () => {
+  // switch to next sticker
+  if (currentSticker) {
+    for (let i = firstIndex; i < stickers.length; i++) {
+      if (currentSticker === stickers[i]) {
+        currentSticker =
+          i < stickers.length - 1 ? stickers[i + 1] : stickers[firstIndex];
+        break;
+      }
+    }
+  } else {
+    // enable sticker pen
+    currentSticker = stickers[firstIndex];
+    //disable pen colors button
+    penColor = null;
+    colorButton.style.backgroundColor = colors[firstIndex];
+    colorButton.style.color = "white";
+    colorButton.innerText = `marker`;
+  }
+
+  stickerButton.innerText = currentSticker
+    ? currentSticker
+    : stickers[firstIndex];
+  notifyChange("tool-moved");
 });
 // add buttons for pen marker tools
-markerTools.append(lineWidthButton, colorButton);
+markerTools.append(lineWidthButton, colorButton, stickerButton);
 
 //---------------------------------event listeners--------------------------------------------
 canvas.addEventListener("mousedown", (e) => {
   console.log("down");
   penDown = true;
-  //start new line with fist point
-  commands.push(new LineCommand(e.offsetX, e.offsetY, lineWidth, penColor));
+  //start new line or sticker with first point
+  if (currentSticker) {
+    commands.push(
+      new StickerCommand(currentSticker, e.offsetX, e.offsetY, lineWidth)
+    );
+  } else {
+    commands.push(new LineCommand(e.offsetX, e.offsetY, lineWidth, penColor!));
+  }
   redoStack = [];
 });
 canvas.addEventListener("mousemove", (e) => {
   if (penDown) {
     cursorComand = null;
+    stickerCommand = null;
     console.log("draw");
     commands[commands.length - 1].extend(e.offsetX, e.offsetY);
     commands[commands.length - 1].display(ctx);
-    cursorComand = new CursorComand(e.offsetX, e.offsetY, lineWidth, penColor);
   }
-  cursorComand = new CursorComand(e.offsetX, e.offsetY, lineWidth, penColor);
+  // use sticker as cursor
+  if (currentSticker) {
+    stickerCommand = new StickerCommand(
+      currentSticker,
+      e.offsetX,
+      e.offsetY,
+      lineWidth
+    );
+    // use pen as cursor
+  } else if (penColor) {
+    cursorComand = new CursorComand(
+      e.offsetX,
+      e.offsetY,
+      lineWidth,
+      penColor,
+      currentSticker
+    );
+  }
   notifyChange("tool-moved");
 });
 canvas.addEventListener("mouseout", () => {
@@ -196,7 +310,13 @@ canvas.addEventListener("mouseout", () => {
   console.log("leave");
 });
 canvas.addEventListener("mouseenter", (e) => {
-  cursorComand = new CursorComand(e.offsetX, e.offsetY, lineWidth, penColor);
+  cursorComand = new CursorComand(
+    e.offsetX,
+    e.offsetY,
+    lineWidth,
+    penColor,
+    currentSticker
+  );
   notifyChange("tool-moved");
 });
 document.addEventListener("mouseup", () => {
