@@ -93,26 +93,16 @@ class CursorComand {
   y: number;
   size: number;
   color: string | null;
-  sticker: string | null;
-  constructor(
-    x: number,
-    y: number,
-    size: number,
-    color: string | null,
-    sticker: string | null
-  ) {
+  constructor(x: number, y: number, size: number, color: string | null) {
     this.x = x;
     this.y = y;
     this.size = size * 4;
     this.color = color;
-    this.sticker = sticker;
   }
   display(ctx: CanvasRenderingContext2D) {
     const originalFillStyle = ctx.fillStyle;
     ctx.font = `${Math.max(7, this.size)}px monospace`;
-    if (this.sticker) {
-      ctx.fillText(this.sticker, this.x, this.y);
-    } else if (this.color) {
+    if (this.color) {
       ctx.fillStyle = this.color;
       if (this.size <= 4) {
         ctx.fillText("+", this.x - 2, this.y + 3);
@@ -137,8 +127,11 @@ class StickerCommand {
     this.length = 1;
   }
   display(ctx: CanvasRenderingContext2D) {
+    const originalFillStyle = ctx.fillStyle;
+    ctx.fillStyle = "black";
     ctx.font = `${Math.max(7, this.size)}px monospace`;
     ctx.fillText(this.sticker, this.x, this.y);
+    ctx.fillStyle = originalFillStyle;
   }
   extend(x: number, y: number) {
     this.x = x;
@@ -166,6 +159,13 @@ function redraw() {
   if (penColor && cursorComand) {
     cursorComand.display(ctx);
   }
+}
+// Disable pen tool and reset colors button
+function disablePen() {
+  penColor = null;
+  colorButton.style.backgroundColor = colors[firstIndex];
+  colorButton.style.color = "white";
+  colorButton.innerText = `marker`;
 }
 
 //---------------------------------create buttons---------------------------------------------------------
@@ -246,13 +246,9 @@ stickerButton.addEventListener("click", () => {
       }
     }
   } else {
-    // enable sticker pen
+    // enable sticker button
     currentSticker = stickers[firstIndex];
-    //disable pen colors button
-    penColor = null;
-    colorButton.style.backgroundColor = colors[firstIndex];
-    colorButton.style.color = "white";
-    colorButton.innerText = `marker`;
+    disablePen(); //reset color button
   }
 
   stickerButton.innerText = currentSticker
@@ -260,8 +256,24 @@ stickerButton.addEventListener("click", () => {
     : stickers[firstIndex];
   notifyChange("tool-moved");
 });
+//button for custom sticker
+const customButton: HTMLButtonElement = document.createElement("button");
+customButton.innerText = "custom sticker";
+customButton.addEventListener("click", () => {
+  const input: string | null = window.prompt(
+    "Input a custom sticker: ",
+    undefined
+  );
+  if (input) {
+    stickers.push(input);
+    currentSticker = input;
+    disablePen();
+    stickerButton.innerText = currentSticker;
+    notifyChange("tool-moved");
+  }
+});
 // add buttons for pen marker tools
-markerTools.append(lineWidthButton, colorButton, stickerButton);
+markerTools.append(lineWidthButton, colorButton, stickerButton, customButton);
 
 //---------------------------------event listeners--------------------------------------------
 canvas.addEventListener("mousedown", (e) => {
@@ -295,34 +307,25 @@ canvas.addEventListener("mousemove", (e) => {
     );
     // use pen as cursor
   } else if (penColor) {
-    cursorComand = new CursorComand(
-      e.offsetX,
-      e.offsetY,
-      lineWidth,
-      penColor,
-      currentSticker
-    );
+    cursorComand = new CursorComand(e.offsetX, e.offsetY, lineWidth, penColor);
   }
   notifyChange("tool-moved");
 });
 canvas.addEventListener("mouseout", () => {
+  console.log("out");
   penDown = false;
-  console.log("leave");
+  stickerCommand = null;
+  cursorComand = null;
+  notifyChange("tool-moved");
 });
 canvas.addEventListener("mouseenter", (e) => {
-  cursorComand = new CursorComand(
-    e.offsetX,
-    e.offsetY,
-    lineWidth,
-    penColor,
-    currentSticker
-  );
+  console.log("enter");
+  cursorComand = new CursorComand(e.offsetX, e.offsetY, lineWidth, penColor);
   notifyChange("tool-moved");
 });
 document.addEventListener("mouseup", () => {
-  penDown = false;
-  //clear currentLine
   console.log("up");
+  penDown = false;
 });
 // observer for tool-moved event
 canvas.addEventListener("tool-moved", () => {
