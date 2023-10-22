@@ -11,6 +11,7 @@ header.innerHTML = gameName;
 // create canvas
 const canvasWidth = 500;
 const canvasHeight = 500;
+const tempWidth = 1024;
 const canvas = document.createElement("canvas");
 canvas.id = "myCanvas";
 canvas.width = canvasWidth;
@@ -194,7 +195,27 @@ redoButton.addEventListener("click", () => {
   commands.push(redoStack.pop()!);
   notifyChange("drawing-changed");
 });
-buttons.append(clearButton, undoButton, redoButton);
+// export button
+const exportButton: HTMLButtonElement = document.createElement("button");
+exportButton.innerText = "export";
+exportButton.addEventListener("click", () => {
+  //create high res copy of current canvas scaled up X4
+  const tempCanvas = document.createElement("canvas");
+  tempCanvas.width = tempWidth;
+  tempCanvas.height = tempWidth;
+  const tempCtx = tempCanvas.getContext("2d")!;
+  tempCtx.fillStyle = "beige";
+  tempCtx.fillRect(0, 0, tempWidth, tempWidth);
+  tempCtx.scale(2, 2);
+  commands.forEach((command) => command.display(tempCtx));
+  // export temp canvas
+  const anchor = document.createElement("a");
+  anchor.href = tempCanvas.toDataURL("image/png");
+  anchor.download = "sketchpad.png";
+  anchor.click();
+  tempCanvas.remove();
+});
+buttons.append(clearButton, undoButton, redoButton, exportButton);
 // line width button
 const lineWidthButton: HTMLButtonElement = document.createElement("button");
 lineWidthButton.innerText = `${lineWidth}px`;

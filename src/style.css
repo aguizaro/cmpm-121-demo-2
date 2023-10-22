@@ -35,7 +35,15 @@ body {
 }
 
 h1 {
-  font-size: 2.2em;
+  font-size: 3.2em;
+  color: #d8daff;
+  font-family: "Gill Sans";
+  text-shadow: 4px 5px 2px rgba(120, 120, 120, 0.458);
+  line-height: 1.1;
+}
+
+h2 {
+  font-size: 1.8em;
   color: #d8daff;
   font-family: "Gill Sans";
   text-shadow: 4px 5px 2px rgba(120, 120, 120, 0.458);
@@ -75,7 +83,7 @@ button:focus-visible {
 #myCanvas {
   filter: drop-shadow(5px 5px 5px rgba(129, 127, 127, 0.705));
   fill: "beige";
-  border-radius: 10px 5% / 20px 25em 30px 35em;
+  border-radius: 20px 2% / 10px 25em 10px 15em;
   border: 1px solid black;
   display: flex;
   align-items: center;
