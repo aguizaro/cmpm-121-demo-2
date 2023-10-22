@@ -18,7 +18,7 @@ canvas.width = canvasWidth;
 canvas.height = canvasHeight;
 canvas.style.cursor = "none";
 const ctx = canvas.getContext("2d")!;
-ctx.fillStyle = "beige";
+ctx.fillStyle = "white";
 ctx.fillRect(0, 0, canvasWidth, canvasHeight);
 // create canvas container div
 const leftContainer = document.createElement("div");
@@ -167,6 +167,7 @@ function disablePen() {
   colorButton.style.backgroundColor = colors[firstIndex];
   colorButton.style.color = "white";
   colorButton.innerText = `marker`;
+  colorButton.style.backgroundColor = "#2a2438";
 }
 
 //---------------------------------create buttons---------------------------------------------------------
@@ -204,7 +205,7 @@ exportButton.addEventListener("click", () => {
   tempCanvas.width = tempWidth;
   tempCanvas.height = tempWidth;
   const tempCtx = tempCanvas.getContext("2d")!;
-  tempCtx.fillStyle = "beige";
+  tempCtx.fillStyle = "white";
   tempCtx.fillRect(0, 0, tempWidth, tempWidth);
   tempCtx.scale(2, 2);
   commands.forEach((command) => command.display(tempCtx));
@@ -228,7 +229,8 @@ lineWidthButton.addEventListener("click", () => {
 });
 //button to change pen color
 const colorButton: HTMLButtonElement = document.createElement("button");
-colorButton.innerText = `${penColor}`;
+colorButton.innerText = penColor;
+colorButton.style.backgroundColor = penColor;
 colorButton.addEventListener("click", () => {
   if (penColor) {
     for (let i = 0; i < colors.length; i++) {
@@ -237,20 +239,22 @@ colorButton.addEventListener("click", () => {
         break;
       }
     }
-    colorButton.innerText = `${penColor}`;
+    colorButton.innerText = penColor;
     if (penColor === "white" || penColor === "yellow") {
       colorButton.style.color = "black";
     } else {
       colorButton.style.color = "white";
     }
     colorButton.style.backgroundColor = penColor;
+    console.log(colorButton.style.backgroundColor);
   } else {
     //disable stickers pen
     currentSticker = null;
     stickerButton.innerText = "stickers";
     // enable marker pen / pen colors button
     penColor = colors[firstIndex];
-    colorButton.innerText = `${penColor}`;
+    colorButton.innerText = penColor;
+    colorButton.style.backgroundColor = penColor;
   }
 });
 //button to change sticker

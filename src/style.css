@@ -5,7 +5,7 @@
 
   color-scheme: light dark;
   color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
+  background-color: #352f44;
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -36,15 +36,15 @@ body {
 
 h1 {
   font-size: 3.2em;
-  color: #d8daff;
+  color: #dbd8e3;
   font-family: "Gill Sans";
   text-shadow: 4px 5px 2px rgba(120, 120, 120, 0.458);
   line-height: 1.1;
 }
 
 h2 {
-  font-size: 1.8em;
-  color: #d8daff;
+  font-size: 1.6em;
+  color: #dbd8e3;
   font-family: "Gill Sans";
   text-shadow: 4px 5px 2px rgba(120, 120, 120, 0.458);
   line-height: 1.1;
@@ -66,13 +66,13 @@ button {
   font-size: 1em;
   font-weight: 500;
   font-family: inherit;
-  background-color: #1a1a1a;
+  background-color: #2a2438;
   cursor: pointer;
   transition: border-color 0.25s;
 }
 
 button:hover {
-  border-color: #646cff;
+  border-color: #0a16ec;
 }
 
 button:focus,
@@ -105,7 +105,6 @@ button:focus-visible {
 
 #button-container button {
   margin: 5px;
-  background-color: #000000;
   filter: drop-shadow(5px 5px 5px rgba(129, 127, 127, 0.705));
 }
 
@@ -118,7 +117,7 @@ button:focus-visible {
 
 #marker-tools button {
   margin: 5px;
-  background-color: #000000;
+
   filter: drop-shadow(5px 5px 5px rgba(129, 127, 127, 0.705));
 }
 
