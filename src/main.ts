@@ -28,11 +28,14 @@ const buttons = document.createElement("div");
 buttons.id = "button-container";
 leftContainer.append(header, canvas, buttons); //buttons + canvas inside canvas container
 // create marker tools
-const markerTools = document.createElement("div");
+const markerTools: HTMLDivElement = document.createElement("div");
 markerTools.id = "marker-tools";
 const subhead = document.createElement("h2");
 subhead.innerText = "Marker Tools";
 markerTools.appendChild(subhead);
+// div for rotation tools
+const rotationTools: HTMLDivElement = document.createElement("div");
+rotationTools.id = "rotation-tools";
 
 //set up pen tools
 const firstIndex = 0;
@@ -40,6 +43,7 @@ let penDown = false;
 let commands: (StickerCommand | LineCommand)[] = [];
 let redoStack: (StickerCommand | LineCommand)[] = [];
 let lineWidth = 1;
+let currentRotation = 0;
 const colors = ["black", "red", "blue", "green", "orange", "white", "yellow"];
 let penColor: string | null = colors[firstIndex];
 const stickers = [
@@ -120,18 +124,30 @@ class StickerCommand {
   y: number;
   size: number;
   length: number;
-  constructor(sticker: string, x: number, y: number, size: number) {
+  degree: number;
+  constructor(
+    sticker: string,
+    x: number,
+    y: number,
+    size: number,
+    degree: number
+  ) {
     this.sticker = sticker;
     this.x = x;
     this.y = y;
     this.size = size * 20;
     this.length = 1;
+    this.degree = degree;
   }
   display(ctx: CanvasRenderingContext2D) {
     const originalFillStyle = ctx.fillStyle;
     ctx.fillStyle = "black";
+    ctx.save();
+    ctx.translate(this.x, this.y);
+    if (this.degree > 0) ctx.rotate((this.degree * Math.PI) / 180);
     ctx.font = `${Math.max(7, this.size)}px monospace`;
-    ctx.fillText(this.sticker, this.x, this.y);
+    ctx.fillText(this.sticker, 0, 0);
+    ctx.restore();
     ctx.fillStyle = originalFillStyle;
   }
   extend(x: number, y: number) {
@@ -217,6 +233,7 @@ exportButton.addEventListener("click", () => {
   tempCanvas.remove();
 });
 buttons.append(clearButton, undoButton, redoButton, exportButton);
+
 // line width button
 const lineWidthButton: HTMLButtonElement = document.createElement("button");
 lineWidthButton.innerText = `${lineWidth}px`;
@@ -275,7 +292,6 @@ stickerButton.addEventListener("click", () => {
     currentSticker = stickers[firstIndex];
     disablePen(); //reset color button
   }
-
   stickerButton.innerText = currentSticker
     ? currentSticker
     : stickers[firstIndex];
@@ -297,8 +313,34 @@ customButton.addEventListener("click", () => {
     notifyChange("tool-moved");
   }
 });
+// slider for sticker rotation
+const rotationSlider = document.createElement("input");
+rotationSlider.type = "range";
+rotationSlider.min = "0";
+rotationSlider.max = "360";
+rotationSlider.step = "1";
+rotationSlider.value = "0";
+
+// Create a span element to display the slider value
+const sliderValue = document.createElement("span");
+sliderValue.textContent = rotationSlider.value + "°";
+
+// Add an event listener to the slider
+rotationSlider.addEventListener("input", () => {
+  currentRotation = parseInt(rotationSlider.value);
+  sliderValue.textContent = `${currentRotation} °`;
+  // You can perform additional actions based on the slider value here
+});
+rotationTools.append("Sticker Rotation:", rotationSlider, sliderValue);
+
 // add buttons for pen marker tools
-markerTools.append(lineWidthButton, colorButton, stickerButton, customButton);
+markerTools.append(
+  lineWidthButton,
+  colorButton,
+  stickerButton,
+  customButton,
+  rotationTools
+);
 
 //---------------------------------event listeners--------------------------------------------
 canvas.addEventListener("mousedown", (e) => {
@@ -307,7 +349,13 @@ canvas.addEventListener("mousedown", (e) => {
   //start new line or sticker with first point
   if (currentSticker) {
     commands.push(
-      new StickerCommand(currentSticker, e.offsetX, e.offsetY, lineWidth)
+      new StickerCommand(
+        currentSticker,
+        e.offsetX,
+        e.offsetY,
+        lineWidth,
+        currentRotation
+      )
     );
   } else {
     commands.push(new LineCommand(e.offsetX, e.offsetY, lineWidth, penColor!));
@@ -328,7 +376,8 @@ canvas.addEventListener("mousemove", (e) => {
       currentSticker,
       e.offsetX,
       e.offsetY,
-      lineWidth
+      lineWidth,
+      currentRotation
     );
     // use pen as cursor
   } else if (penColor) {
@@ -356,7 +405,7 @@ document.addEventListener("mouseup", () => {
 canvas.addEventListener("tool-moved", () => {
   redraw();
 });
-// observer for drawing-changed event - clears and redraws canvas
+// observer for drawing-changed event
 canvas.addEventListener("drawing-changed", () => {
   redraw();
 });

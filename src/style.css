@@ -16,7 +16,7 @@
 
 a {
   font-weight: 500;
-  color: #646cff;
+  color: #1a22ac;
   text-decoration: inherit;
 }
 
@@ -113,12 +113,25 @@ button:focus-visible {
   flex-direction: column;
   justify-content: center;
   margin-left: 30px;
+
 }
 
 #marker-tools button {
   margin: 5px;
-
   filter: drop-shadow(5px 5px 5px rgba(129, 127, 127, 0.705));
+}
+
+#marker-tools input {
+  margin: 5px;
+  filter: drop-shadow(5px 5px 5px rgba(129, 127, 127, 0.705));
+}
+
+#rotation-tools {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding-top: 10px;
+  color: #dbd8e3;
 }
 
 @media (prefers-color-scheme: light) {
@@ -128,7 +141,7 @@ button:focus-visible {
   }
 
   a:hover {
-    color: #747bff;
+    color: #ffa774;
   }
 
   button {
