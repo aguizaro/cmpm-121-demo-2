@@ -263,7 +263,6 @@ colorButton.addEventListener("click", () => {
       colorButton.style.color = "white";
     }
     colorButton.style.backgroundColor = penColor;
-    console.log(colorButton.style.backgroundColor);
   } else {
     //disable stickers pen
     currentSticker = null;
@@ -329,7 +328,8 @@ sliderValue.textContent = rotationSlider.value + "°";
 rotationSlider.addEventListener("input", () => {
   currentRotation = parseInt(rotationSlider.value);
   sliderValue.textContent = `${currentRotation} °`;
-  // You can perform additional actions based on the slider value here
+  if (stickerCommand) stickerCommand.degree = currentRotation;
+  notifyChange("tool-moved");
 });
 rotationTools.append("Sticker Rotation:", rotationSlider, sliderValue);
 
@@ -344,7 +344,6 @@ markerTools.append(
 
 //---------------------------------event listeners--------------------------------------------
 canvas.addEventListener("mousedown", (e) => {
-  console.log("down");
   penDown = true;
   //start new line or sticker with first point
   if (currentSticker) {
@@ -366,12 +365,12 @@ canvas.addEventListener("mousemove", (e) => {
   if (penDown) {
     cursorComand = null;
     stickerCommand = null;
-    console.log("draw");
     commands[commands.length - 1].extend(e.offsetX, e.offsetY);
     commands[commands.length - 1].display(ctx);
   }
   // use sticker as cursor
   if (currentSticker) {
+    // maybe we can update stickerCommand.x & .y & .degree here instead of making a new StickerCommand
     stickerCommand = new StickerCommand(
       currentSticker,
       e.offsetX,
@@ -386,19 +385,16 @@ canvas.addEventListener("mousemove", (e) => {
   notifyChange("tool-moved");
 });
 canvas.addEventListener("mouseout", () => {
-  console.log("out");
   penDown = false;
   stickerCommand = null;
   cursorComand = null;
   notifyChange("tool-moved");
 });
 canvas.addEventListener("mouseenter", (e) => {
-  console.log("enter");
   cursorComand = new CursorComand(e.offsetX, e.offsetY, lineWidth, penColor);
   notifyChange("tool-moved");
 });
 document.addEventListener("mouseup", () => {
-  console.log("up");
   penDown = false;
 });
 // observer for tool-moved event
