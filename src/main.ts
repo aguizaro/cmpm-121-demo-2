@@ -44,7 +44,23 @@ let commands: (StickerCommand | LineCommand)[] = [];
 let redoStack: (StickerCommand | LineCommand)[] = [];
 let lineWidth = 1;
 let currentRotation = 0;
-const colors = ["black", "red", "blue", "green", "orange", "white", "yellow"];
+const colors = [
+  "black",
+  "red",
+  "blue",
+  "green",
+  "orange",
+  "white",
+  "yellow",
+  "royalblue",
+  "pink",
+  "aqua",
+  "gold",
+  "indigo",
+  "moccasin",
+  "blueviolet",
+];
+const lightColors = ["white", "yellow", "pink", "aqua", "gold", "moccasin"];
 let penColor: string | null = colors[firstIndex];
 const stickers = [
   "👾",
@@ -58,6 +74,12 @@ const stickers = [
   "⚽️",
   "❤️‍🔥",
   "🚽",
+  "👑",
+  "🐳",
+  "🌻",
+  "🌈",
+  "⛈",
+  "🚙",
 ];
 let currentSticker: string | null = null;
 let cursorComand: CursorComand | null = null;
@@ -269,7 +291,7 @@ colorButton.addEventListener("click", () => {
       }
     }
     colorButton.innerText = penColor;
-    if (penColor === "white" || penColor === "yellow") {
+    if (lightColors.includes(penColor)) {
       colorButton.style.color = "black";
     } else {
       colorButton.style.color = "white";
