@@ -185,6 +185,11 @@ function disablePen() {
   colorButton.innerText = `marker`;
   colorButton.style.backgroundColor = "#2a2438";
 }
+//checks undo and redo buttons and enables/disables them if needed
+function updateButtonStatus() {
+  undoButton.disabled = commands.length ? false : true;
+  redoButton.disabled = redoStack.length ? false : true;
+}
 
 //---------------------------------create buttons---------------------------------------------------------
 //clear canvas button
@@ -194,23 +199,30 @@ clearButton.innerText = "Clear";
 clearButton.addEventListener("click", () => {
   commands = []; //clear stroke history
   redoStack = [];
+  updateButtonStatus();
   notifyChange("drawing-changed");
 });
 // undo button
 const undoButton: HTMLButtonElement = document.createElement("button");
-undoButton.innerText = "Undo";
+undoButton.innerText = "undo";
+undoButton.disabled = true;
 undoButton.addEventListener("click", () => {
-  if (!commands.length) return;
-  redoStack.push(commands.pop()!);
-  notifyChange("drawing-changed");
+  if (commands.length) {
+    redoStack.push(commands.pop()!);
+    notifyChange("drawing-changed");
+  }
+  updateButtonStatus();
 });
 // redo button
 const redoButton: HTMLButtonElement = document.createElement("button");
-redoButton.innerText = "Redo";
+redoButton.innerText = "redo";
+redoButton.disabled = true;
 redoButton.addEventListener("click", () => {
-  if (!redoStack.length) return;
-  commands.push(redoStack.pop()!);
-  notifyChange("drawing-changed");
+  if (redoStack.length) {
+    commands.push(redoStack.pop()!);
+    notifyChange("drawing-changed");
+  }
+  updateButtonStatus();
 });
 // export button
 const exportButton: HTMLButtonElement = document.createElement("button");
@@ -396,6 +408,7 @@ canvas.addEventListener("mouseenter", (e) => {
 });
 document.addEventListener("mouseup", () => {
   penDown = false;
+  updateButtonStatus();
 });
 // observer for tool-moved event
 canvas.addEventListener("tool-moved", () => {
