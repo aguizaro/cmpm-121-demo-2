@@ -1,4 +1,4 @@
-#StickerPAD
+# StickerPAD
 
 Sketch pad with emoji stickers built using Typescipt and Vite.
 
